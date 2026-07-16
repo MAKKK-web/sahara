@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#082f2e" />
+    <title>SAHARA | Accessible independence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="profiles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="SAHARA home"><span class="brand-mark">S</span><span>SAHARA</span></a>
+      <div class="topbar-actions">
+        <button id="languageButton" class="quiet-button" aria-label="Switch language">EN <span aria-hidden="true">⌄</span></button>
+        <button id="settingsButton" class="icon-button" aria-label="Open accessibility settings">⚙</button>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="companion-intro" aria-labelledby="welcome-title">
+        <div><p class="eyebrow" id="profileStatus">SAHARA IS READY</p><h1 id="welcome-title">How can I help you <em>right now?</em></h1><p id="profileDescription">Use your voice, camera, or keyboard. SAHARA turns what is happening around you into clear, useful guidance.</p></div>
+        <div class="input-dock" aria-label="Choose how to ask SAHARA">
+          <button id="listenButton" class="ask-action voice-action"><span class="action-symbol" aria-hidden="true">&#9679;</span><span><strong>Speak</strong><small id="voicePromptText">Tell SAHARA what you need</small></span></button>
+          <button class="ask-action" data-tool="vision"><span class="action-symbol" aria-hidden="true">&#9635;</span><span><strong>Point camera</strong><small>Describe what you see</small></span></button>
+          <button class="ask-action" data-tool="help"><span class="action-symbol" aria-hidden="true">T</span><span><strong>Type</strong><small>Ask anything</small></span></button>
+        </div>
+      </section>
+
+      <section class="companion-grid" aria-label="Live accessibility dashboard">
+        <article class="scene-card" aria-labelledby="scene-title">
+          <div class="card-heading"><div><p class="eyebrow">LIVE SCENE · DEMO</p><h2 id="scene-title">What SAHARA understands</h2></div><span class="live-pill"><i></i> Seeing</span></div>
+          <div class="scene-view" role="img" aria-label="Demo camera view of a public entrance with an exit sign, bench, door, and wet floor warning.">
+            <span class="scene-door"></span><span class="scene-bench"></span><span class="scene-person"></span><span class="scene-sign">EXIT &#8594;</span><span class="scene-warning">!</span>
+            <span class="scene-tag tag-exit">Exit ahead</span><span class="scene-tag tag-bench">Bench</span><span class="scene-tag tag-person">Person approaching</span><span class="scene-tag tag-warning">Wet floor</span>
+          </div>
+          <div class="scene-answer"><span class="spark" aria-hidden="true">✦</span><p><strong>Clear path to the exit,</strong> slightly right. A wet-floor sign is two steps ahead on your left.</p><button id="sceneSpeak" class="listen-small" aria-label="Speak scene description">&#9654;</button></div>
+          <button class="wide-primary" data-tool="vision">Describe my surroundings <span aria-hidden="true">&#8594;</span></button>
+        </article>
+
+        <article class="captions-card" aria-labelledby="captions-title">
+          <div class="card-heading"><div><p class="eyebrow">CONVERSATION BRIDGE · DEMO</p><h2 id="captions-title">Nothing gets missed</h2></div><span class="caption-live"><i></i> Captions on</span></div>
+          <div class="caption-flow" aria-live="polite"><p class="speaker">Teacher</p><p class="spoken">“Please submit the assignment before Friday.”</p><div class="translation"><span>Urdu translation</span><p lang="ur" dir="rtl">جمعہ سے پہلے اسائنمنٹ جمع کروائیں</p></div><div class="summary"><span>SAHARA SUMMARY</span><strong>Assignment due Friday.</strong></div></div>
+          <button class="wide-secondary" data-tool="conversation">Start live captions <span aria-hidden="true">&#8594;</span></button>
+        </article>
+      </section>
+
+      <section class="story-strip" aria-label="Try a SAHARA scenario"><div class="story-mark">&#9635;</div><div><p class="eyebrow">TRY A REAL-WORLD MOMENT</p><h2>“I can’t see the bus number.”</h2><p>Point the camera at the bus. SAHARA reads the route, then speaks the next helpful action.</p></div><button data-tool="vision">Try the scenario <span aria-hidden="true">&#8594;</span></button></section>
+
+      <section class="emergency-card" aria-labelledby="emergency-title"><div><span class="emergency-mark" aria-hidden="true">!</span><div><p class="eyebrow">EMERGENCY MODE</p><h2 id="emergency-title">Need help now?</h2><p>Prepare a location check-in, contact someone you trust, or describe what is around you.</p></div></div><button id="safetyButton">Open emergency mode <span aria-hidden="true">&#8594;</span></button></section>
+      <p class="privacy-note">Camera, microphone, and location stay off until you choose to use them. <button data-tool="read">Read privacy promise aloud</button></p>
+    </main>
+
+    <dialog id="toolDialog" class="sheet">
+      <button class="close-button" aria-label="Close">×</button>
+      <div id="toolContent"></div>
+    </dialog>
+
+    <dialog id="setupDialog" class="sheet setup-sheet">
+      <div class="setup-mark">S</div><p class="eyebrow">WELCOME TO SAHARA</p><h2>Made around the way you move through the world.</h2><p>Choose what would make SAHARA most comfortable for you. You can change this anytime.</p>
+      <div class="profile-options">
+        <button data-profile="vision">Vision support</button><button data-profile="hearing">Hearing support</button><button data-profile="motor">Motor support</button><button data-profile="multiple">More than one</button>
+      </div>
+      <button id="continueSetup" class="primary-button" disabled>Continue</button>
+    </dialog>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
