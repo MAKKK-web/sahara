@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SAHARA | Accessible Independence</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
+
+<script src="https://unpkg.com/ml5@0.12.2/dist/ml5.min.js"></script>
+
+<style>
+
+
+  :root {
+    --radius: 22px;
+    --radius-lg: 28px;
+    --font-scale: 1;
+    font-family: "DM Sans", system-ui, sans-serif;
+
+    --sky-a: #f2ecd9;
+    --sky-b: #e7e0c9;
+    --ink: #16342f;
+    --muted: #5c7270;
+    --card: #fffdf8;
+    --line: #e2ddc9;
+    --accent: #d9724a;
+    --accent-ink: #ffffff;
+    --dark: #0f3733;
+    --soft: #e7eee0;
+    --glow: #f0c68a;
+    --celestial: #ffd77a;
+    --dune-1: #ded2ab;
+    --dune-2: #c9bb8e;
+    --dune-3: #a9987066;
+  }
+
+  [data-time="dawn"] {
+    --sky-a: #f8e3d0;
+    --sky-b: #f3c8ba;
+    --ink: #3a2436;
+    --muted: #7a5b6e;
+    --card: #fff8f2;
+    --line: #ecd7cc;
+    --accent: #d9724a;
+    --accent-ink: #ffffff;
+    --dark: #5b2e3a;
+    --soft: #f6e2da;
+    --glow: #f6b98a;
+    --celestial: #ffcf8c;
+    --dune-1: #e7bfa0;
+    --dune-2: #d29e83;
+    --dune-3: #8c5a5a55;
+  }
+
+  [data-time="dusk"] {
+    --sky-a: #efb27a;
+    --sky-b: #6f4d78;
+    --ink: #2a1b33;
+    --muted: #7a6a8a;
+    --card: #fbf3f2;
+    --line: #dccdd6;
+    --accent: #e8875a;
+    --accent-ink: #ffffff;
+    --dark: #3d2650;
+    --soft: #ecdfe6;
+    --glow: #f2a45f;
+    --celestial: #f4c07a;
+    --dune-1: #8b6f8f;
+    --dune-2: #6c5477;
+    --dune-3: #3d265077;
+  }
+
+  [data-time="night"] {
+    --sky-a: #182338;
+    --sky-b: #0b1220;
+    --ink: #e9e2cf;
+    --muted: #93a3b5;
+    --card: #101a2c;
+    --line: #253453;
+    --accent: #5fb8ae;
+    --accent-ink: #0b1220;
+    --dark: #5fb8ae;
+    --soft: #16233b;
+    --glow: #4c6c92;
+    --celestial: #e9e2cf;
+    --dune-1: #223252;
+    --dune-2: #182640;
+    --dune-3: #0b122099;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+  html.reduce-motion { scroll-behavior: auto; }
+  html.reduce-motion *, html.reduce-motion *::before, html.reduce-motion *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  body {
+    margin: 0;
+    color: var(--ink);
+    min-height: 100vh;
+    padding-bottom: 60px;
+    background: linear-gradient(180deg, var(--sky-a) 0%, var(--sky-b) 65%);
+    transition: background 1.4s ease, color 0.6s ease;
+    position: relative;
+    overflow-x: hidden;
+    font-size: calc(16px * var(--font-scale));
+  }
+
+
+  #skyLayer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  #skyLayer svg { width: 100%; height: 100%; display: block; }
+  .celestial {
+    fill: var(--celestial);
+    filter: blur(0.5px) drop-shadow(0 0 24px var(--celestial));
+    transition: fill 1.4s ease;
+  }
+  .star { fill: #fff; opacity: 0; transition: opacity 1.2s ease; }
+  [data-time="night"] .star { opacity: var(--star-op, 0.8); }
+  .dune-far { fill: var(--dune-1); transition: fill 1.2s ease; }
+  .dune-mid { fill: var(--dune-2); transition: fill 1.2s ease; }
+  .grain-rect { fill: transparent; }
+
+  
+  .topbar {
+    position: relative;
+    z-index: 2;
+    height: 76px;
+    max-width: 1220px;
+    margin: auto;
+    padding: 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--ink);
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    font-size: 14px;
+  }
+  .brand-mark {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    background: var(--accent);
+    border-radius: 10px;
+    color: var(--accent-ink);
+    font-family: Fraunces, serif;
+    font-size: 21px;
+    font-weight: 700;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  .time-pill {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--line);
+    padding: 6px 12px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: color-mix(in srgb, var(--card) 70%, transparent);
+  }
+  .time-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+
+  .topbar-actions { display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line);
+    background: color-mix(in srgb, var(--card) 70%, transparent);
+    display: grid; place-items: center; cursor: pointer; color: var(--ink);
+    font-size: 17px; transition: 0.2s;
+  }
+  .icon-btn:hover { background: var(--soft); }
+
+
+  main { position: relative; z-index: 2; max-width: 1220px; margin: auto; padding: 10px 30px; }
+  .hero { margin-bottom: 26px; }
+  .hero h1 {
+    font-family: Fraunces, Georgia, serif;
+    font-weight: 600;
+    font-size: clamp(34px, 5vw, 54px);
+    letter-spacing: -0.03em;
+    line-height: 1.03;
+    margin: 0 0 12px 0;
+    max-width: 720px;
+  }
+  .hero h1 em { font-style: normal; color: var(--accent); }
+  .hero p { color: var(--muted); font-size: 18px; max-width: 600px; line-height: 1.55; margin: 0 0 22px; }
+
+  /* Ask Sahara command bar */
+  .ask-bar {
+    display: flex;
+    gap: 8px;
+    max-width: 620px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 6px 6px 6px 20px;
+    box-shadow: 0 14px 30px rgba(20, 40, 35, 0.06);
+  }
+  .ask-bar input {
+    flex: 1; border: none; background: transparent; outline: none;
+    font-family: inherit; font-size: 15px; color: var(--ink);
+  }
+  .ask-bar input::placeholder { color: var(--muted); }
+  .ask-bar button {
+    background: var(--dark); color: #fff; border: none; border-radius: 100px;
+    padding: 12px 20px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap;
+  }
+  .ask-hint { margin: 8px 2px 0; font-size: 12px; color: var(--muted); }
+  .ask-hint button {
+    background: none; border: none; padding: 0; margin: 0 3px; font: inherit;
+    color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline;
+  }
+
+
+  .journey {
+    margin: 26px 0 34px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-lg);
+    padding: 20px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 22px;
+    box-shadow: 0 12px 28px rgba(22, 65, 55, 0.04);
+  }
+  .journey-title { font-family: Fraunces, serif; font-size: 16px; margin: 0; flex-shrink: 0; }
+  .journey-title span { display: block; font-family: "IBM Plex Mono", monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .journey-stats { display: flex; flex-wrap: wrap; gap: 26px; flex: 1; }
+  .jstat { text-align: left; }
+  .jstat .num {
+    font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 24px; color: var(--accent);
+    display: inline-block; min-width: 1ch;
+  }
+  .jstat.pulse .num { animation: statPulse 0.5s ease; }
+  @keyframes statPulse { 0%{ transform: scale(1);} 40%{ transform: scale(1.35); } 100%{ transform: scale(1);} }
+  .jstat .lbl { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px; }
+  .journey-cta {
+    background: var(--soft); color: var(--ink); border: none; border-radius: 100px;
+    padding: 10px 18px; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 20px;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px;
+    box-shadow: 0 12px 28px rgba(22, 65, 55, 0.04);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    position: relative;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 18px 34px rgba(22, 65, 55, 0.09); }
+  html.reduce-motion .card:hover { transform: none; }
+  .card.active-glow { box-shadow: 0 0 0 2px var(--accent), 0 18px 34px rgba(22, 65, 55, 0.1); }
+
+  .card-heading { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px; }
+  .card h2 { font-family: Fraunces, serif; font-weight: 600; font-size: 24px; margin: 5px 0 10px; letter-spacing: -0.02em; }
+  .eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; color: var(--muted); text-transform: uppercase; margin: 0; }
+  .card p.desc { color: var(--muted); line-height: 1.5; margin-top: 0; flex-grow: 1; }
+
+  /* Buttons & Inputs */
+  button { font-family: inherit; }
+  .btn-primary, .btn-accent, .btn-outline {
+    border: none; border-radius: 13px; padding: 14px 18px; font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: 0.2s; margin: 4px 4px 0 0;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--dark); color: var(--accent-ink); }
+  .btn-primary:hover { filter: brightness(1.08); }
+  .btn-accent { background: var(--accent); color: var(--accent-ink); }
+  .btn-accent:hover { filter: brightness(1.08); }
+  .btn-outline { background: transparent; border: 2px solid var(--line); color: var(--ink); }
+  .btn-outline:hover { background: var(--soft); }
+
+  .status-box { background: var(--soft); padding: 16px; border-radius: 16px; margin: 15px 0; font-weight: 500; min-height: 24px; color: var(--ink); }
+
+  video { width: 100%; border-radius: 16px; background: #000; display: none; margin-bottom: 15px; }
+  textarea {
+    width: 100%; box-sizing: border-box; padding: 16px;
+    border: 1px solid var(--line); border-radius: 16px;
+    font-family: inherit; font-size: 16px; resize: vertical;
+    background: var(--card); color: var(--ink);
+  }
+
+  .video-wrapper { position: relative; width: 100%; border-radius: 16px; overflow: hidden; margin-bottom: 15px; display: none; background: #000; }
+  .video-wrapper canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+  .video-wrapper video { display: block; margin-bottom: 0; width: 100%; }
+
+
+  #wayfinder {
+    position: fixed; right: 24px; bottom: 24px; z-index: 20;
+    display: flex; align-items: flex-end; gap: 12px;
+  }
+  #wfBubble {
+    max-width: 240px; background: var(--dark); color: var(--accent-ink);
+    padding: 12px 16px; border-radius: 18px 18px 4px 18px; font-size: 13px; line-height: 1.4;
+    box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+    opacity: 0; transform: translateY(8px); transition: 0.3s ease; pointer-events: none;
+  }
+  #wfBubble.show { opacity: 1; transform: translateY(0); }
+  #wfOrb {
+    width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer;
+    background: radial-gradient(circle at 32% 28%, var(--glow), var(--accent) 65%);
+    box-shadow: 0 8px 22px rgba(0,0,0,0.18), 0 0 0 6px color-mix(in srgb, var(--accent) 16%, transparent);
+    display: grid; place-items: center; font-size: 22px; flex-shrink: 0;
+    animation: orbPulse 3.2s ease-in-out infinite;
+  }
+  @keyframes orbPulse { 0%,100% { box-shadow: 0 8px 22px rgba(0,0,0,0.18), 0 0 0 6px color-mix(in srgb, var(--accent) 16%, transparent); } 50% { box-shadow: 0 8px 26px rgba(0,0,0,0.2), 0 0 0 11px color-mix(in srgb, var(--accent) 8%, transparent); } }
+
+
+  #a11yPanel {
+    position: fixed; top: 76px; right: 24px; z-index: 30;
+    width: 260px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 18px; padding: 18px; box-shadow: 0 18px 40px rgba(0,0,0,0.14);
+    display: none; flex-direction: column; gap: 14px;
+  }
+  #a11yPanel.open { display: flex; }
+  #a11yPanel h3 { margin: 0; font-family: Fraunces, serif; font-size: 16px; }
+  .a11y-row { display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+  .toggle { position: relative; width: 40px; height: 22px; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle .slider { position: absolute; inset: 0; background: var(--line); border-radius: 100px; cursor: pointer; transition: 0.2s; }
+  .toggle .slider::before { content: ""; position: absolute; width: 16px; height: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: 0.2s; }
+  .toggle input:checked + .slider { background: var(--accent); }
+  .toggle input:checked + .slider::before { transform: translateX(18px); }
+  #a11yPanel input[type="range"] { width: 100%; }
+
+  /* High contrast override */
+  html.a11y-contrast body { --sky-a: #000 !important; --sky-b: #000 !important; --ink: #fff !important; --card: #000 !important; --line: #fff !important; --muted: #ddd !important; --soft: #111 !important; --accent: #ffe14d !important; --accent-ink: #000 !important; --dark: #ffe14d !important; }
+  html.a11y-contrast .card { border-width: 2px; }
+  html.a11y-contrast .btn-primary, html.a11y-contrast .btn-outline { border: 2px solid #fff; }
+
+  /* Journey modal */
+  #journeyModal {
+    position: fixed; inset: 0; z-index: 40; background: rgba(10,20,18,0.55);
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  #journeyModal.open { display: flex; }
+  .modal-card {
+    background: var(--card); border-radius: 24px; padding: 32px; max-width: 460px; width: 100%;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+  }
+  .modal-card h3 { font-family: Fraunces, serif; font-size: 22px; margin-top: 0; }
+  .modal-card p { color: var(--muted); line-height: 1.5; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 18px; }
+
+  footer.credit { position: relative; z-index: 2; max-width: 1220px; margin: 30px auto 0; padding: 0 30px; color: var(--muted); font-size: 12px; }
+
+  @media (max-width: 640px) {
+    #wayfinder { right: 14px; bottom: 14px; }
+    #a11yPanel { right: 14px; width: calc(100% - 28px); }
+    .journey { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div id="skyLayer" aria-hidden="true">
+  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+    <g id="starField"></g>
+    <circle id="celestialBody" class="celestial" cx="1100" cy="140" r="46" />
+    <path id="duneFar" class="dune-far" d="M0,620 C 220,560 380,660 620,610 C 860,560 1040,650 1440,590 L1440,900 L0,900 Z" />
+    <path id="duneMid" class="dune-mid" d="M0,700 C 260,650 460,740 760,690 C 1020,650 1220,720 1440,680 L1440,900 L0,900 Z" />
+  </svg>
+</div>
+
+<header class="topbar">
+  <div class="brand"><div class="brand-mark">S</div><span>SAHARA</span></div>
+  <div class="topbar-actions">
+    <div class="time-pill" id="timePill"><span class="dot"></span><span id="timeLabel">Loading sky…</span></div>
+    <button class="icon-btn" id="a11yToggleBtn" title="Accessibility settings" aria-label="Accessibility settings">⚙</button>
+  </div>
+</header>
+
+<div id="a11yPanel">
+  <h3>Make it yours</h3>
+  <div class="a11y-row">
+    <span>High contrast</span>
+    <label class="toggle"><input type="checkbox" id="contrastToggle"><span class="slider"></span></label>
+  </div>
+  <div class="a11y-row">
+    <span>Reduce motion</span>
+    <label class="toggle"><input type="checkbox" id="motionToggle"><span class="slider"></span></label>
+  </div>
+  <div>
+    <div class="a11y-row"><span>Text size</span><span id="fontSizeReadout">100%</span></div>
+    <input type="range" id="fontSlider" min="90" max="150" step="5" value="100">
+  </div>
+</div>
+
+<main>
+  <div class="hero">
+    <h1>Accessible independence, <em>built for everyone.</em></h1>
+    <p>100% private, offline-capable tools to help you move through the world. No internet or API keys required — everything runs right here, on your device.</p>
+
+    <form class="ask-bar" id="askForm">
+      <input type="text" id="askInput" placeholder="Tell Sahara what you need — e.g. &quot;read this to me&quot;" aria-label="Tell Sahara what you need" />
+      <button type="submit">Ask Sahara</button>
+    </form>
+    <p class="ask-hint">Try
+      <button type="button" data-ask="sign language">sign practice</button>,
+      <button type="button" data-ask="identify object">what's this?</button>, or
+      <button type="button" data-ask="safety">safety check-in</button>
+    </p>
+  </div>
+
+  <div class="journey">
+    <div class="journey-title"><span>Live · This Session</span>Your journey today</div>
+    <div class="journey-stats">
+      <div class="jstat" id="statSigns"><span class="num" data-count="0">0</span><span class="lbl">Signs learned</span></div>
+      <div class="jstat" id="statObjects"><span class="num" data-count="0">0</span><span class="lbl">Objects identified</span></div>
+      <div class="jstat" id="statWords"><span class="num" data-count="0">0</span><span class="lbl">Words read aloud</span></div>
+      <div class="jstat" id="statMag"><span class="num" data-count="0">0</span><span class="lbl">Magnifier uses</span></div>
+      <div class="jstat" id="statSafety"><span class="num" data-count="0">0</span><span class="lbl">Check-ins ready</span></div>
+    </div>
+    <button class="journey-cta" id="viewJourneyBtn">View recap</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- 1. AI SIGN LANGUAGE TUTOR -->
+    <div class="card" id="cardAsl">
+      <div class="card-heading">
+        <div><p class="eyebrow">EDUCATION</p><h2>AI Sign Language Tutor</h2></div>
+      </div>
+      <p class="desc">Real-time hand tracking evaluates your sign language using the camera.</p>
+
+      <div class="video-wrapper" id="aslWrapper">
+        <video id="aslVideo" autoplay playsinline muted></video>
+        <canvas id="aslCanvas"></canvas>
+      </div>
+
+      <div id="aslStatus" class="status-box" style="text-align: center; font-weight: 700; color: var(--accent);">
+        Tap 'Start AI Practice' to load the hand-tracking engine.
+      </div>
+
+      <div>
+        <button id="aslStart" class="btn-primary">Start AI Practice</button>
+        <button id="aslStop" class="btn-outline" disabled>Stop</button>
+      </div>
+    </div>
+
+    <!-- 2. VISION ASSISTANT -->
+    <div class="card" id="cardVision">
+      <div class="card-heading">
+        <div><p class="eyebrow">ENVIRONMENT</p><h2>AI Object Vision</h2></div>
+      </div>
+      <p class="desc">Identify objects using your local camera. Everything is processed directly on your device.</p>
+      <video id="visionVideo" autoplay playsinline muted></video>
+      <div id="visionStatus" class="status-box">Model loading… please wait.</div>
+      <div>
+        <button id="visionStart" class="btn-primary">Turn on Camera</button>
+        <button id="visionAnalyze" class="btn-accent" disabled>Analyze Scene</button>
+      </div>
+    </div>
+
+    <!-- 3. CONVERSATION BRIDGE -->
+    <div class="card" id="cardCaptions">
+      <div class="card-heading">
+        <div><p class="eyebrow">HEARING</p><h2>Live Captions</h2></div>
+      </div>
+      <p class="desc">Large, easy-to-read live captions so you never miss a word in a conversation.</p>
+      <div id="captionStatus" class="status-box" style="font-size: 22px; min-height: 100px;">
+        Captions will appear here…
+      </div>
+      <div>
+        <button id="captionStart" class="btn-primary">Start Captions</button>
+        <button id="captionStop" class="btn-outline" disabled>Stop</button>
+      </div>
+    </div>
+
+    <!-- 4. READ ALOUD -->
+    <div class="card" id="cardRead">
+      <div class="card-heading">
+        <div><p class="eyebrow">READING</p><h2>Read Aloud</h2></div>
+      </div>
+      <p class="desc">Paste any text and SAHARA will read it to you naturally.</p>
+      <textarea id="readText" rows="4" placeholder="Type or paste text here…"></textarea>
+      <div>
+        <button id="readStart" class="btn-primary">Read Aloud</button>
+        <button id="readStop" class="btn-outline">Clear &amp; Stop</button>
+      </div>
+    </div>
+
+    <!-- 5. DIGITAL MAGNIFIER -->
+    <div class="card" id="cardMag">
+      <div class="card-heading">
+        <div><p class="eyebrow">LOW VISION</p><h2>Magnifier</h2></div>
+      </div>
+      <p class="desc">Use your camera as a digital magnifying glass with color inversion.</p>
+      <video id="magVideo" autoplay playsinline muted></video>
+      <div class="status-box" id="magControls" style="display:none; align-items:center; gap: 10px;">
+        <label style="font-weight:700; font-size:14px;">Zoom:</label>
+        <input type="range" id="zoomSlider" min="1" max="4" step="0.1" value="1" style="flex-grow:1;">
+      </div>
+      <div>
+        <button id="magStart" class="btn-primary">Start Magnifier</button>
+        <button id="invertBtn" class="btn-outline" disabled>Invert Colors</button>
+      </div>
+    </div>
+
+    <!-- 6. SAFETY CHECK-IN -->
+    <div class="card" id="cardSafety" style="background: var(--dark); color: var(--accent-ink);">
+      <div class="card-heading">
+        <div><p class="eyebrow" style="color: color-mix(in srgb, var(--accent-ink) 70%, transparent);">EMERGENCY</p><h2 style="color:var(--accent-ink);">Safety Check-in</h2></div>
+      </div>
+      <p class="desc" style="color: color-mix(in srgb, var(--accent-ink) 82%, transparent);">Quickly generate a private message with your exact location to share with someone you trust.</p>
+      <div id="locationStatus" class="status-box" style="background: rgba(0,0,0,0.18); color: var(--accent-ink); display:none; border: 1px solid rgba(255,255,255,0.2);"></div>
+      <div style="margin-top: auto;">
+        <button id="locStart" class="btn-outline" style="background:var(--card); color:var(--ink); border:none; width: 100%; margin-bottom: 8px;">Create Check-in</button>
+        <button id="locShare" class="btn-accent" style="width: 100%;" disabled>Copy Message</button>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="credit">Built to move quietly out of your way — every tool here runs locally, with nothing sent to a server.</footer>
+
+<!-- Wayfinder companion -->
+<div id="wayfinder">
+  <div id="wfBubble" role="status" aria-live="polite">Hi, I'm here if you need a hand. Try the bar above, or just start exploring.</div>
+  <button id="wfOrb" aria-label="Sahara guide">🧭</button>
+</div>
+
+<!-- Journey recap modal -->
+<div id="journeyModal">
+  <div class="modal-card">
+    <h3>Your journey so far</h3>
+    <p id="journeySummaryText">You haven't started yet — try any tool and I'll keep track here.</p>
+    <div class="modal-actions">
+      <button class="btn-primary" id="journeyCopyBtn">Copy summary</button>
+      <button class="btn-outline" id="journeyCloseBtn">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* =========================================================
+     LIVING DESERT SKY — time-of-day theme + ambient parallax
+  ========================================================= */
+  const html = document.documentElement;
+  const timeLabel = document.getElementById('timeLabel');
+  const celestialBody = document.getElementById('celestialBody');
+  const starField = document.getElementById('starField');
+  const duneFar = document.getElementById('duneFar');
+  const duneMid = document.getElementById('duneMid');
+
+  // scatter stars once
+  for (let i = 0; i < 60; i++) {
+    const s = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    s.setAttribute('cx', Math.random() * 1440);
+    s.setAttribute('cy', Math.random() * 420);
+    s.setAttribute('r', (Math.random() * 1.4 + 0.4).toFixed(2));
+    s.setAttribute('class', 'star');
+    s.style.setProperty('--star-op', (Math.random() * 0.6 + 0.3).toFixed(2));
+    starField.appendChild(s);
+  }
+
+  function getPeriod(hour) {
+    if (hour >= 5 && hour < 8) return 'dawn';
+    if (hour >= 8 && hour < 17) return 'day';
+    if (hour >= 17 && hour < 20) return 'dusk';
+    return 'night';
+  }
+
+  function applyTime() {
+    const now = new Date();
+    const hour = now.getHours() + now.getMinutes() / 60;
+    const period = getPeriod(hour);
+    document.body.setAttribute('data-time', period);
+    const labels = { dawn: 'Desert dawn', day: 'Desert daylight', dusk: 'Desert dusk', night: 'Desert night' };
+    timeLabel.textContent = `${labels[period]} · ${now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}`;
+
+    // move the sun/moon along a simple arc across the sky, 5am -> 8pm
+    const dayStart = 5, dayEnd = 20;
+    let frac = (hour - dayStart) / (dayEnd - dayStart);
+    frac = Math.max(0, Math.min(1, frac));
+    const x = 140 + frac * 1160;
+    const y = 130 + Math.sin(frac * Math.PI) * -70 + 60;
+    celestialBody.setAttribute('cx', x);
+    celestialBody.setAttribute('cy', 260 - Math.sin(frac * Math.PI) * 160);
+  }
+  applyTime();
+  setInterval(applyTime, 60000);
+
+  // gentle mouse parallax on dunes (skipped if reduced motion)
+  document.addEventListener('mousemove', (e) => {
+    if (html.classList.contains('reduce-motion')) return;
+    const nx = (e.clientX / window.innerWidth - 0.5);
+    duneFar.style.transform = `translateX(${nx * 10}px)`;
+    duneMid.style.transform = `translateX(${nx * 22}px)`;
+  });
+
+  /* =========================================================
+     ACCESSIBILITY PANEL
+  ========================================================= */
+  const a11yPanel = document.getElementById('a11yPanel');
+  document.getElementById('a11yToggleBtn').addEventListener('click', () => a11yPanel.classList.toggle('open'));
+
+  document.getElementById('contrastToggle').addEventListener('change', (e) => {
+    html.classList.toggle('a11y-contrast', e.target.checked);
+  });
+  document.getElementById('motionToggle').addEventListener('change', (e) => {
+    html.classList.toggle('reduce-motion', e.target.checked);
+  });
+  const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+  if (prefersReduced.matches) {
+    html.classList.add('reduce-motion');
+    document.getElementById('motionToggle').checked = true;
+  }
+  const fontSlider = document.getElementById('fontSlider');
+  const fontReadout = document.getElementById('fontSizeReadout');
+  fontSlider.addEventListener('input', (e) => {
+    const pct = e.target.value;
+    document.documentElement.style.setProperty('--font-scale', pct / 100);
+    fontReadout.textContent = pct + '%';
+  });
+
+  /* =========================================================
+     WAYFINDER COMPANION
+  ========================================================= */
+  const wfBubble = document.getElementById('wfBubble');
+  const wfOrb = document.getElementById('wfOrb');
+  let wfTimer = null;
+
+  function wayfinderSay(text, opts = {}) {
+    wfBubble.textContent = text;
+    wfBubble.classList.add('show');
+    clearTimeout(wfTimer);
+    wfTimer = setTimeout(() => wfBubble.classList.remove('show'), 5200);
+    if (opts.speak) speak(text);
+  }
+  wfOrb.addEventListener('click', () => {
+    wfBubble.classList.toggle('show');
+  });
+
+  /* =========================================================
+     JOURNEY STATS — live counters
+  ========================================================= */
+  const journey = { signs: 0, objects: 0, words: 0, mag: 0, safety: 0 };
+  const statMap = { signs: 'statSigns', objects: 'statObjects', words: 'statWords', mag: 'statMag', safety: 'statSafety' };
+
+  function bumpStat(key, amount = 1) {
+    journey[key] += amount;
+    const el = document.getElementById(statMap[key]);
+    const numEl = el.querySelector('.num');
+    numEl.textContent = journey[key];
+    el.classList.remove('pulse');
+    void el.offsetWidth; // restart animation
+    el.classList.add('pulse');
+  }
+
+  function highlightCard(id) {
+    document.querySelectorAll('.card').forEach(c => c.classList.remove('active-glow'));
+    const card = document.getElementById(id);
+    if (card) { card.classList.add('active-glow'); setTimeout(() => card.classList.remove('active-glow'), 2400); }
+  }
+
+  document.getElementById('viewJourneyBtn').addEventListener('click', openJourneyModal);
+  const journeyModal = document.getElementById('journeyModal');
+  document.getElementById('journeyCloseBtn').addEventListener('click', () => journeyModal.classList.remove('open'));
+  document.getElementById('journeyCopyBtn').addEventListener('click', () => {
+    const text = document.getElementById('journeySummaryText').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('journeyCopyBtn');
+      const old = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = old, 1800);
+    });
+  });
+
+  function openJourneyModal() {
+    const total = journey.signs + journey.objects + journey.words + journey.mag + journey.safety;
+    let text;
+    if (total === 0) {
+      text = "You haven't started yet — try any tool above and I'll keep track here.";
+    } else {
+      const parts = [];
+      if (journey.signs) parts.push(`practiced ${journey.signs} sign${journey.signs>1?'s':''}`);
+      if (journey.objects) parts.push(`identified ${journey.objects} object${journey.objects>1?'s':''}`);
+      if (journey.words) parts.push(`had ${journey.words} word${journey.words>1?'s':''} read aloud`);
+      if (journey.mag) parts.push(`used the magnifier ${journey.mag} time${journey.mag>1?'s':''}`);
+      if (journey.safety) parts.push(`prepared ${journey.safety} safety check-in${journey.safety>1?'s':''}`);
+      text = `Today with SAHARA, you ${parts.join(', ')}. That's real, independent progress.`;
+    }
+    document.getElementById('journeySummaryText').textContent = text;
+    journeyModal.classList.add('open');
+  }
+
+  /* =========================================================
+     ASK SAHARA — lightweight local intent routing
+  ========================================================= */
+  const intents = [
+    { keys: ['sign', 'asl', 'hand'], card: 'cardAsl', btn: 'aslStart', msg: "Let's practice sign language — show me an open palm when you're ready." },
+    { keys: ['identify', 'what is', "what's this", 'object', 'see', 'vision'], card: 'cardVision', btn: 'visionStart', msg: "I'll turn on the camera so we can see what's around you." },
+    { keys: ['caption', 'hear', 'listen', 'conversation'], card: 'cardCaptions', btn: 'captionStart', msg: "Turning on live captions — I'll show what I hear in big, clear text." },
+    { keys: ['read', 'text', 'aloud'], card: 'cardRead', btn: null, msg: "Paste your text below and I'll read it out loud for you." },
+    { keys: ['magnif', 'zoom', 'low vision', 'blur'], card: 'cardMag', btn: 'magStart', msg: "Here's your magnifier — I can zoom and invert colors too." },
+    { keys: ['safety', 'emergency', 'location', 'check-in', 'checkin'], card: 'cardSafety', btn: 'locStart', msg: "Let's get a safety check-in ready with your location." },
+  ];
+
+  function routeAsk(raw) {
+    const q = raw.toLowerCase();
+    const match = intents.find(i => i.keys.some(k => q.includes(k)));
+    if (!match) {
+      wayfinderSay("I'm not sure which tool fits that yet — try sign language, object vision, captions, reading, magnifier, or safety.", { speak: true });
+      return;
+    }
+    document.getElementById(match.card).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    highlightCard(match.card);
+    wayfinderSay(match.msg, { speak: true });
+  }
+
+  document.getElementById('askForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const input = document.getElementById('askInput');
+    if (!input.value.trim()) return;
+    routeAsk(input.value);
+    input.value = '';
+  });
+  document.querySelectorAll('[data-ask]').forEach(btn => {
+    btn.addEventListener('click', () => routeAsk(btn.dataset.ask));
+  });
+
+  /* =========================================================
+     GLOBAL UTILS
+  ========================================================= */
+  function speak(text) {
+    if ('speechSynthesis' in window) {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      speechSynthesis.speak(utterance);
+    }
+  }
+
+  /* =========================================================
+     1. AI SIGN LANGUAGE TUTOR (HANDPOSE)
+  ========================================================= */
+  let aslStream = null;
+  let handpose;
+  let predictions = [];
+  let isAslRunning = false;
+  let targetSign = 'Hello';
+
+  const aslVideo = document.getElementById('aslVideo');
+  const aslCanvas = document.getElementById('aslCanvas');
+  const ctx = aslCanvas.getContext('2d');
+  const aslWrapper = document.getElementById('aslWrapper');
+  const aslStatus = document.getElementById('aslStatus');
+  const btnAslStart = document.getElementById('aslStart');
+  const btnAslStop = document.getElementById('aslStop');
+
+  aslVideo.addEventListener('loadeddata', () => {
+    aslCanvas.width = aslVideo.videoWidth;
+    aslCanvas.height = aslVideo.videoHeight;
+  });
+
+  btnAslStart.addEventListener('click', async () => {
+    try {
+      aslStatus.innerHTML = "Loading hand tracking model… (This takes a moment)";
+      btnAslStart.disabled = true;
+
+      aslStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      aslVideo.srcObject = aslStream;
+      aslWrapper.style.display = 'block';
+
+      handpose = ml5.handpose(aslVideo, () => {
+        aslStatus.innerHTML = "Model Loaded! <br><br> Show an <strong>Open Palm</strong> for 'Hello'.";
+        aslStatus.style.color = "var(--ink)";
+        btnAslStop.disabled = false;
+        isAslRunning = true;
+        wayfinderSay("Camera's on — try an open palm for 'Hello'.");
+
+        handpose.on('predict', results => { predictions = results; });
+        drawAsl();
+      });
+
+    } catch (err) {
+      aslStatus.textContent = "Camera permission denied.";
+      btnAslStart.disabled = false;
+    }
+  });
+
+  btnAslStop.addEventListener('click', () => {
+    isAslRunning = false;
+    if (aslStream) aslStream.getTracks().forEach(t => t.stop());
+    aslWrapper.style.display = 'none';
+    btnAslStart.disabled = false;
+    btnAslStop.disabled = true;
+    aslStatus.innerHTML = "Practice stopped.";
+  });
+
+  function getDistance(p1, p2) {
+    return Math.sqrt(Math.pow(p1[0] - p2[0], 2) + Math.pow(p1[1] - p2[1], 2));
+  }
+
+  function drawAsl() {
+    if (!isAslRunning) return;
+    ctx.clearRect(0, 0, aslCanvas.width, aslCanvas.height);
+
+    if (predictions.length > 0) {
+      const hand = predictions[0].annotations;
+
+      for (let i = 0; i < predictions[0].landmarks.length; i++) {
+        const keypoint = predictions[0].landmarks[i];
+        ctx.beginPath();
+        ctx.arc(keypoint[0], keypoint[1], 6, 0, 2 * Math.PI);
+        ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--accent') || '#e86345';
+        ctx.fill();
+      }
+
+      const wrist = hand.palmBase[0];
+      const indexTip = hand.indexFinger[3];
+      const indexBase = hand.indexFinger[0];
+
+      const distToTip = getDistance(wrist, indexTip);
+      const distToBase = getDistance(wrist, indexBase);
+      const isExtended = distToTip > (distToBase * 1.5);
+
+      if (targetSign === 'Hello' && isExtended) {
+        aslStatus.innerHTML = "✅ Perfect! You signed <strong>'Hello'</strong>!";
+        aslStatus.style.color = "#4aa970";
+        targetSign = 'Wait';
+        speak("Perfect! You signed Hello.");
+        bumpStat('signs');
+        wayfinderSay("Nice sign! That's one more for your journey today.");
+
+        setTimeout(() => {
+          targetSign = 'Yes';
+          aslStatus.innerHTML = "Now show a <strong>Closed Fist</strong> for 'Yes'.";
+          aslStatus.style.color = "var(--ink)";
+        }, 4000);
+
+      } else if (targetSign === 'Yes' && !isExtended) {
+        aslStatus.innerHTML = "✅ Perfect! You signed <strong>'Yes'</strong>!";
+        aslStatus.style.color = "#4aa970";
+        targetSign = 'Wait';
+        speak("Perfect! You signed Yes.");
+        bumpStat('signs');
+        wayfinderSay("Two for two — you're getting the hang of this.");
+
+        setTimeout(() => {
+          targetSign = 'Hello';
+          aslStatus.innerHTML = "Now show an <strong>Open Palm</strong> for 'Hello'.";
+          aslStatus.style.color = "var(--ink)";
+        }, 4000);
+      }
+    }
+
+    requestAnimationFrame(drawAsl);
+  }
+
+  /* =========================================================
+     2. AI OBJECT VISION (MobileNet)
+  ========================================================= */
+  let visionStream = null;
+  let objClassifier;
+  const visionVideo = document.getElementById('visionVideo');
+  const visionStatus = document.getElementById('visionStatus');
+  const btnVisionStart = document.getElementById('visionStart');
+  const btnVisionAnalyze = document.getElementById('visionAnalyze');
+
+  objClassifier = ml5.imageClassifier('MobileNet', () => {
+    visionStatus.textContent = 'AI Model ready.';
+  });
+
+  btnVisionStart.addEventListener('click', async () => {
+    if (!visionStream) {
+      try {
+        visionStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        visionVideo.srcObject = visionStream;
+        visionVideo.style.display = 'block';
+        btnVisionStart.textContent = 'Stop Camera';
+        btnVisionStart.classList.replace('btn-primary', 'btn-outline');
+        btnVisionAnalyze.disabled = false;
+        visionStatus.textContent = 'Point at an object and tap Analyze.';
+      } catch (err) { visionStatus.textContent = 'Camera permission denied.'; }
+    } else {
+      visionStream.getTracks().forEach(t => t.stop());
+      visionStream = null;
+      visionVideo.style.display = 'none';
+      btnVisionStart.textContent = 'Turn on Camera';
+      btnVisionStart.classList.replace('btn-outline', 'btn-primary');
+      btnVisionAnalyze.disabled = true;
+      visionStatus.textContent = 'Camera stopped.';
+    }
+  });
+
+  btnVisionAnalyze.addEventListener('click', () => {
+    visionStatus.textContent = 'Analyzing…';
+    objClassifier.classify(visionVideo, (err, results) => {
+      if (err || !results) { visionStatus.textContent = 'Could not identify. Try again.'; return; }
+      const label = results[0].label.split(',')[0];
+      const text = `I see a ${label}.`;
+      visionStatus.innerHTML = `<strong>Result:</strong> ${text}`;
+      speak(text);
+      bumpStat('objects');
+      wayfinderSay(`Spotted it: ${label}.`);
+    });
+  });
+
+  /* =========================================================
+     3. LIVE CAPTIONS
+  ========================================================= */
+  let recognition;
+  const captionStatus = document.getElementById('captionStatus');
+  const btnCapStart = document.getElementById('captionStart');
+  const btnCapStop = document.getElementById('captionStop');
+
+  btnCapStart.addEventListener('click', () => {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) { captionStatus.textContent = 'Browser not supported. Try Chrome.'; return; }
+
+    recognition = new SpeechRec();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onstart = () => {
+      captionStatus.textContent = 'Listening…';
+      btnCapStart.disabled = true; btnCapStop.disabled = false;
+      wayfinderSay("Listening closely — captions will appear as words come in.");
+    };
+    recognition.onresult = (e) => {
+      let text = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) text += e.results[i][0].transcript;
+      captionStatus.textContent = text;
+    };
+    recognition.start();
+  });
+
+  btnCapStop.addEventListener('click', () => {
+    if (recognition) recognition.stop();
+    btnCapStart.disabled = false; btnCapStop.disabled = true;
+    captionStatus.innerHTML = '<span style="color:var(--muted);">Captions paused.</span>';
+  });
+
+  /* =========================================================
+     4. READ ALOUD
+  ========================================================= */
+  const readText = document.getElementById('readText');
+  document.getElementById('readStart').addEventListener('click', () => {
+    const val = readText.value.trim();
+    if (val) {
+      speak(val);
+      const wordCount = val.split(/\s+/).filter(Boolean).length;
+      bumpStat('words', wordCount);
+      wayfinderSay(`Reading ${wordCount} word${wordCount>1?'s':''} aloud now.`);
+    }
+  });
+  document.getElementById('readStop').addEventListener('click', () => {
+    readText.value = '';
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+  });
+
+  /* =========================================================
+     5. DIGITAL MAGNIFIER
+  ========================================================= */
+  let magStream = null;
+  const magVideo = document.getElementById('magVideo');
+  const btnMagStart = document.getElementById('magStart');
+  const btnInvert = document.getElementById('invertBtn');
+  const magControls = document.getElementById('magControls');
+  const zoomSlider = document.getElementById('zoomSlider');
+  let isInverted = false;
+
+  btnMagStart.addEventListener('click', async () => {
+    if (!magStream) {
+      try {
+        magStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        magVideo.srcObject = magStream;
+        magVideo.style.display = 'block';
+        magControls.style.display = 'flex';
+        btnMagStart.textContent = 'Stop Magnifier';
+        btnMagStart.classList.replace('btn-primary', 'btn-outline');
+        btnInvert.disabled = false;
+        bumpStat('mag');
+        wayfinderSay("Magnifier's up — drag the zoom slider to get closer.");
+      } catch (err) { alert('Camera access denied.'); }
+    } else {
+      magStream.getTracks().forEach(t => t.stop());
+      magStream = null;
+      magVideo.style.display = 'none';
+      magControls.style.display = 'none';
+      btnMagStart.textContent = 'Start Magnifier';
+      btnMagStart.classList.replace('btn-outline', 'btn-primary');
+      btnInvert.disabled = true;
+    }
+  });
+
+  zoomSlider.addEventListener('input', (e) => magVideo.style.transform = `scale(${e.target.value})`);
+  btnInvert.addEventListener('click', () => {
+    isInverted = !isInverted;
+    magVideo.style.filter = isInverted ? 'invert(100%) contrast(150%)' : 'none';
+    btnInvert.textContent = isInverted ? 'Normal Colors' : 'Invert Colors';
+    btnInvert.className = isInverted ? 'btn-accent' : 'btn-outline';
+  });
+
+  /* =========================================================
+     6. SAFETY CHECK-IN
+  ========================================================= */
+  const locStatus = document.getElementById('locationStatus');
+  const btnLocShare = document.getElementById('locShare');
+  let shareText = '';
+
+  document.getElementById('locStart').addEventListener('click', () => {
+    locStatus.style.display = 'block';
+    locStatus.textContent = 'Locating…';
+    if (!navigator.geolocation) { locStatus.textContent = 'Location not supported.'; return; }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const link = `https://maps.google.com/?q=${pos.coords.latitude},${pos.coords.longitude}`;
+        shareText = `Hi, safety check-in from SAHARA. My location: ${link}`;
+        locStatus.innerHTML = `<strong>Ready to share.</strong><br><small style="opacity:0.75">${link}</small>`;
+        btnLocShare.disabled = false;
+        bumpStat('safety');
+        wayfinderSay("Your check-in is ready to copy and send.");
+      },
+      () => { locStatus.textContent = 'Access denied or unavailable.'; }
+    );
+  });
+
+  btnLocShare.addEventListener('click', () => {
+    navigator.clipboard.writeText(shareText).then(() => {
+      btnLocShare.textContent = 'Copied!';
+      setTimeout(() => btnLocShare.textContent = 'Copy Message', 2000);
+    });
+  });
+</script>
+</body>
+</html>
